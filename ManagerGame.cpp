@@ -27,6 +27,21 @@ void AManagerGame::BeginPlay()
 		previousBoard[ROW].SetNum(SIZE);
 	}
 
+	//Создание виджетов
+	StartMenuWidget = CreateWidget<UUserWidget>(GetWorld(), MainMenu);
+	GameOverWidget = CreateWidget<UUserWidget>(GetWorld(), GameOver);
+	if (StartMenuWidget)
+	{
+		StartMenuWidget->AddToViewport();
+		StartMenuScoreBlock = Cast<UTextBlock>(StartMenuWidget->GetWidgetFromName(TEXT("ScoreTextBlockWidget")));
+		StartMenuUndoCountText = Cast<UTextBlock>(StartMenuWidget->GetWidgetFromName(TEXT("UndoCountText")));
+	}
+	if (GameOverWidget)
+	{
+		//Добавление виджеты
+		GameOverWidget->AddToViewport();
+	}
+
 	StartGame();
 }
 
@@ -38,15 +53,17 @@ void AManagerGame::Tick(float DeltaTime)
 
 void AManagerGame::StartGame()
 {
+	//Скрытие виджета до момента, пока игра не закончится	
+	GameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
+
 	hasMoved = false;
 	undoCount = 3;
 	currentScore = 0;
 	previousScore = 0;
 
-	gameBoard->UpdateScore(currentScore);
-	gameBoard->UpdateUndoCount(undoCount);
+	UpdateScore(currentScore);
+	UpdateUndoCount(undoCount);
 
-	gameBoard->HideGameOverMessage();
 	for (int ROW = 0; ROW < gameBoard->GetSIZEGRID(); ROW++)
 	{
 		for (int COLUMNUMN = 0; COLUMNUMN < gameBoard->GetSIZEGRID(); COLUMNUMN++)
@@ -54,7 +71,7 @@ void AManagerGame::StartGame()
 			gameBoard->GameBoardTile[ROW][COLUMNUMN]->SetValue(0);
 		}
 	}
-	gameBoard->SetCurrentScore(0);
+
 	gameBoard->GenerateRandomValue();
 	gameBoard->GenerateRandomValue();
 	SavePreviousBoard();
@@ -62,7 +79,7 @@ void AManagerGame::StartGame()
 
 void AManagerGame::EndGame()// Функция для окончания игры, которая добавит надпись
 {
-	gameBoard->DisplayGameOverMessage();
+	GameOverWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
 void AManagerGame::PushUp()//Сдвигаем ячейки вверх
@@ -267,7 +284,7 @@ void AManagerGame::CheckEndGame()// проверка на конец игры
 
 bool AManagerGame::CanCombineWithTile(ATile* const currentTile,int const &ROW,int const &COLUMNUMN)
 {
-	// функция определяет можно ли слиять данный блок с сосдним по определенному индексу
+	// функция определяет можно ли слиять данный блок с соседним по определенному индексу
 	if (ROW < 0 || ROW >= gameBoard->GetSIZEGRID() || COLUMNUMN < 0 || COLUMNUMN >= gameBoard->GetSIZEGRID())
 	{
 		return false;
@@ -299,7 +316,7 @@ void AManagerGame::SavePreviousBoard()// Сохранение состояния предыдущего хода
 
 void AManagerGame::IfHasMoved()
 {
-	gameBoard->UpdateScore(currentScore);
+	UpdateScore(currentScore);
 	if (hasMoved)
 	{
 		gameBoard->GenerateRandomValue();
@@ -321,9 +338,18 @@ void AManagerGame::SetPreviousBoard() // Замена текущих значения ячеек на значен
 				gameBoard->GameBoardTile[ROW][COLUMN]->SetValue(previousBoard[ROW][COLUMN]);
 			}
 		}
-
-		gameBoard->UpdateScore(currentScore);
-		gameBoard->UpdateUndoCount(--undoCount);
+		UpdateScore(currentScore);
+		UpdateUndoCount(--undoCount);
 		hasMoved = false;
 	}
+}
+
+void AManagerGame::UpdateUndoCount(int UndoCount)
+{
+	StartMenuUndoCountText->SetText(FText::AsNumber(UndoCount));
+}
+
+void AManagerGame::UpdateScore(int Score)
+{
+	StartMenuScoreBlock->SetText(FText::AsNumber(Score));
 }

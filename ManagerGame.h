@@ -5,6 +5,12 @@
 #include "GameFramework/Actor.h"
 #include "GameBoard.h"
 #include "InputManager.h"
+#include "Widgets/SWidget.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Components/TextBlock.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Blueprint/UserWidget.h"
 #include "ManagerGame.generated.h"
 
 UCLASS()
@@ -37,6 +43,25 @@ public:
 	void SetPreviousBoard();
 
 private:
+
+	void UpdateUndoCount(int UndoCount);
+
+	void UpdateScore(int Score);
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<UUserWidget> MainMenu;
+
+	UUserWidget* StartMenuWidget;
+
+	UTextBlock* StartMenuScoreBlock;
+
+	UTextBlock* StartMenuUndoCountText;
+
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<UUserWidget> GameOver;
+
+	UUserWidget* GameOverWidget;
+
 	bool hasMoved;
 
 	void CheckEndGame();
