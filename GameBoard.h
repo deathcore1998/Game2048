@@ -19,19 +19,19 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-public:	
-	
-	virtual void Tick(float DeltaTime) override;
-
-	void CreatingElementsOnTheBoard();
-
-	TArray<TArray<ATile*>> GameBoardTile;
-
+	friend class AManagerGame;
 	int GetSIZEGRID();
+
+	int GetCountEmptyTile() const;
 
 	void GenerateRandomValue();
 
-	int GetCountEmptyTile() const;
+	TArray<TArray<ATile*>> GameBoardTile;
+
+	void CreatingElementsOnTheBoard();
+public:	
+	
+	virtual void Tick(float DeltaTime) override;
 
 private:
 

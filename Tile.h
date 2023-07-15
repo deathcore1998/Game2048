@@ -43,15 +43,17 @@ protected:
 
 	virtual void BeginPlay() override;
 
-public:	
-
-	virtual void Tick(float DeltaTime) override;
-
+	friend class AManagerGame;
+	friend class URandomizer;
 	void SetColor(); // Установка цвета блока
 
 	void SetValue(int NewValue); // Установка значения блока
 
 	void UpdateAppearance(); // Функция для обновления надписи на блоке и его цвета
+
+public:	
+
+	virtual void Tick(float DeltaTime) override;
 
 	int GetValue();
 

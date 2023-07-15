@@ -26,10 +26,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-public:	
-	
-	virtual void Tick(float DeltaTime) override;
-
+	friend class AInputManager;
 	void PushUp();
 
 	void PushDown();
@@ -41,6 +38,10 @@ public:
 	void StartGame();
 
 	void SetPreviousBoard();
+
+public:	
+	
+	virtual void Tick(float DeltaTime) override;
 
 private:
 

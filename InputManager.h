@@ -14,13 +14,10 @@ class GAME2048_API AInputManager : public APlayerController
 
 	virtual void BeginPlay() override;
 
-public:
-	AInputManager();
-
 	virtual void SetupInputComponent() override;
 
 	UFUNCTION(BlueprintCallable)
-	void PushUp();
+		void PushUp();
 
 	void PushDown();
 
@@ -31,6 +28,11 @@ public:
 	void StartNewGame();
 
 	void CancelingMove();
+
+public:
+	AInputManager();
+
+
 private:
 	AManagerGame* ManagerGame;
 };
