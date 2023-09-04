@@ -19,69 +19,44 @@ class GAME2048_API AManagerGame : public AActor
 	GENERATED_BODY()
 	
 public:	
-	
 	AManagerGame();
+	virtual void Tick(float deltaTime) override;
 
 protected:
-	
 	virtual void BeginPlay() override;
 
+private:
 	friend class AInputManager;
-	void PushUp();
+	void pushUp();
+	void pushDown();
+	void pushLeft();
+	void pushRight();
+	void startGame();
+	void setPreviousBoard();
 
-	void PushDown();
-
-	void PushLeft();
-
-	void PushRight();
-
-	void StartGame();
-
-	void SetPreviousBoard();
-
-public:	
-	
-	virtual void Tick(float DeltaTime) override;
+	void updateUndoCount(int countUndo);
+	void updateScore(int score);
+	void checkEndGame();
+	bool canCombineWithTile(ATile* const currentTile, int const& ROW, int const& COLUMN);
+	void endGame();
+	void savePreviousBoard();
+	void ifHasMoved();
 
 private:
-
-	void UpdateUndoCount(int UndoCount);
-
-	void UpdateScore(int Score);
+	UPROPERTY(EditAnywhere, Category = "Widgets")
+		TSubclassOf<UUserWidget> mainMenu;
+	UUserWidget* startMenuWidget;
+	UTextBlock* startMenuScoreBlock;
+	UTextBlock* startMenuUndoCountText;
 
 	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<UUserWidget> MainMenu;
-
-	UUserWidget* StartMenuWidget;
-
-	UTextBlock* StartMenuScoreBlock;
-
-	UTextBlock* StartMenuUndoCountText;
-
-	UPROPERTY(EditAnywhere, Category = "Widgets")
-		TSubclassOf<UUserWidget> GameOver;
-
-	UUserWidget* GameOverWidget;
-
-	bool hasMoved;
-
-	void CheckEndGame();
-
-	bool CanCombineWithTile(ATile* const currentTile, int const& ROW, int const& COLUMN);
-
-	void EndGame();
-
-	void SavePreviousBoard();
-
-	void IfHasMoved();
-
-	AGameBoard* gameBoard;
-
-	int currentScore;
-
-	int previousScore;
-
-	int undoCount;
+		TSubclassOf<UUserWidget> gameOver;
+	UUserWidget* gameOverWidget;
 
 	TArray<TArray<int>> previousBoard;
+	AGameBoard* gameBoard;
+	bool hasMoved;
+	int currentScore;
+	int previousScore;
+	int undoCount;
 };

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -12,38 +11,26 @@ class GAME2048_API AGameBoard : public AActor
 	GENERATED_BODY()
 	
 public:	
-	
 	AGameBoard();
+	virtual void Tick(float deltaTime) override;
 
 protected:
-	
 	virtual void BeginPlay() override;
 
+private:
 	friend class AManagerGame;
-	int GetSIZEGRID();
-
-	int GetCountEmptyTile() const;
-
-	void GenerateRandomValue();
-
-	TArray<TArray<ATile*>> GameBoardTile;
-
-	void CreatingElementsOnTheBoard();
-public:	
-	
-	virtual void Tick(float DeltaTime) override;
+	int getSIZEGRID();
+	int getCountEmptyTile() const;
+	void generateRandomValue();
+	void creatingElementsOnTheBoard();
 
 private:
+	UWorld* world;
+	URandomizer* myRandomizer;
+	USceneComponent* boardRoot;
+	UStaticMeshComponent* boardMesh;
 
-	int CountEmptyTile;
-
-	UWorld* World;
-
-	URandomizer* MyRandomizer;
-
+	TArray<TArray<ATile*>> gameBoardTile;
 	const int SIZEGRID = 4;
-
-	USceneComponent* BoardRoot;
-
-	UStaticMeshComponent* BoardMesh;
+	int countEmptyTile;
 };

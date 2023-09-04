@@ -1,355 +1,307 @@
-
 #include "ManagerGame.h"
 
 AManagerGame::AManagerGame() : Super()
 {
- 	
 	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AManagerGame::BeginPlay()
 {
 	Super::BeginPlay();
-
 	UWorld* world = GetWorld();
-
 	//ƒобавление GameBoard
-	if (world != nullptr)
-	{
+	if (world != nullptr) {
 		gameBoard = world->SpawnActor<AGameBoard>(AGameBoard::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
 	}
 
-	const int SIZE = gameBoard->GetSIZEGRID();
-
+	const int SIZE = gameBoard->getSIZEGRID();
 	previousBoard.SetNum(SIZE);
-	for (int ROW = 0; ROW < SIZE; ROW++)
-	{
+	for (int ROW = 0; ROW < SIZE; ROW++) {
 		previousBoard[ROW].SetNum(SIZE);
 	}
-
 	//—оздание виджетов
-	StartMenuWidget = CreateWidget<UUserWidget>(GetWorld(), MainMenu);
-	GameOverWidget = CreateWidget<UUserWidget>(GetWorld(), GameOver);
-	if (StartMenuWidget)
-	{
-		StartMenuWidget->AddToViewport();
-		StartMenuScoreBlock = Cast<UTextBlock>(StartMenuWidget->GetWidgetFromName(TEXT("ScoreTextBlockWidget")));
-		StartMenuUndoCountText = Cast<UTextBlock>(StartMenuWidget->GetWidgetFromName(TEXT("UndoCountText")));
+	startMenuWidget = CreateWidget<UUserWidget>(GetWorld(), mainMenu);
+	gameOverWidget = CreateWidget<UUserWidget>(GetWorld(), gameOver);
+	if (startMenuWidget) {
+		startMenuWidget->AddToViewport();
+		startMenuScoreBlock = Cast<UTextBlock>(startMenuWidget->GetWidgetFromName(TEXT("ScoreTextBlockWidget")));
+		startMenuUndoCountText = Cast<UTextBlock>(startMenuWidget->GetWidgetFromName(TEXT("UndoCountText")));
 	}
-	if (GameOverWidget)
-	{
-		//ƒобавление виджеты
-		GameOverWidget->AddToViewport();
+	if (gameOverWidget) {
+		gameOverWidget->AddToViewport();
 	}
-
-	StartGame();
+	startGame();
 }
 
-void AManagerGame::Tick(float DeltaTime)
+void AManagerGame::Tick(float deltaTime)
 {
-	Super::Tick(DeltaTime);
-
+	Super::Tick(deltaTime);
 }
 
-void AManagerGame::StartGame()
+void AManagerGame::startGame()
 {
 	//—крытие виджета до момента, пока игра не закончитс€	
-	GameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
+	gameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
 
 	hasMoved = false;
 	undoCount = 3;
 	currentScore = 0;
 	previousScore = 0;
 
-	UpdateScore(currentScore);
-	UpdateUndoCount(undoCount);
-
-	for (int ROW = 0; ROW < gameBoard->GetSIZEGRID(); ROW++)
-	{
-		for (int COLUMNUMN = 0; COLUMNUMN < gameBoard->GetSIZEGRID(); COLUMNUMN++)
-		{
-			gameBoard->GameBoardTile[ROW][COLUMNUMN]->SetValue(0);
+	updateScore(currentScore);
+	updateUndoCount(undoCount);
+	const int SIZE = gameBoard->getSIZEGRID();
+	for (int ROW = 0; ROW < SIZE; ROW++) {
+		for (int COLUMNUMN = 0; COLUMNUMN < SIZE; COLUMNUMN++) {
+			gameBoard->gameBoardTile[ROW][COLUMNUMN]->setValue(0);
 		}
 	}
 
-	gameBoard->GenerateRandomValue();
-	gameBoard->GenerateRandomValue();
-	SavePreviousBoard();
+	gameBoard->generateRandomValue();
+	gameBoard->generateRandomValue();
+	savePreviousBoard();
 }
 
-void AManagerGame::EndGame()// ‘ункци€ дл€ окончани€ игры, котора€ добавит надпись
+void AManagerGame::endGame()// ‘ункци€ дл€ окончани€ игры
 {
-	GameOverWidget->SetVisibility(ESlateVisibility::Visible);
+	gameOverWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AManagerGame::PushUp()//—двигаем €чейки вверх
+void AManagerGame::pushUp()//—двигаем €чейки вверх
 {
-	SavePreviousBoard();
+	savePreviousBoard();
 
 	hasMoved = false;
-	const int SIZE = gameBoard->GetSIZEGRID();
+	const int SIZE = gameBoard->getSIZEGRID();
 
-	for (int COLUMN = 0; COLUMN < SIZE; COLUMN++)
-	{
+	for (int COLUMN = 0; COLUMN < SIZE; COLUMN++) {
 		bool hasMerged = false; // флаг, указывающий, было ли выполнено сли€ние в данном столбце на данной итерации
 
-		for (int ROW = 1; ROW < SIZE; ROW++)
-		{
-			if (gameBoard->GameBoardTile[ROW][COLUMN]->GetValue() != 0)
-			{
+		for (int ROW = 1; ROW < SIZE; ROW++) {
+			if (gameBoard->gameBoardTile[ROW][COLUMN]->getValue() != 0) {
 				int newROW = ROW;
-				while (newROW > 0 && gameBoard->GameBoardTile[newROW - 1][COLUMN]->GetValue() == 0)
-				{
-					gameBoard->GameBoardTile[newROW - 1][COLUMN]->SetValue(gameBoard->GameBoardTile[newROW][COLUMN]->GetValue());
-					gameBoard->GameBoardTile[newROW][COLUMN]->SetValue(0);
+				while (newROW > 0 && gameBoard->gameBoardTile[newROW - 1][COLUMN]->getValue() == 0) {
+					gameBoard->gameBoardTile[newROW - 1][COLUMN]->setValue(gameBoard->gameBoardTile[newROW][COLUMN]->getValue());
+					gameBoard->gameBoardTile[newROW][COLUMN]->setValue(0);
 					newROW--;
 					hasMoved = true;
 				}
 
-				if (newROW > 0 && gameBoard->GameBoardTile[newROW - 1][COLUMN]->GetValue() == gameBoard->GameBoardTile[newROW][COLUMN]->GetValue() && !hasMerged && gameBoard->GameBoardTile[newROW][COLUMN]->GetValue() != 0)
-				{
-					gameBoard->GameBoardTile[newROW - 1][COLUMN]->SetValue(gameBoard->GameBoardTile[newROW - 1][COLUMN]->GetValue() * 2);
+				if (newROW > 0 && gameBoard->gameBoardTile[newROW - 1][COLUMN]->getValue() == gameBoard->gameBoardTile[newROW][COLUMN]->getValue() 
+					&& !hasMerged && gameBoard->gameBoardTile[newROW][COLUMN]->getValue() != 0) {
+					
+					gameBoard->gameBoardTile[newROW - 1][COLUMN]->setValue(gameBoard->gameBoardTile[newROW - 1][COLUMN]->getValue() * 2);
+					currentScore += gameBoard->gameBoardTile[newROW - 1][COLUMN]->getValue();
 
-					currentScore += gameBoard->GameBoardTile[newROW - 1][COLUMN]->GetValue();
-
-					gameBoard->GameBoardTile[newROW][COLUMN]->SetValue(0);
+					gameBoard->gameBoardTile[newROW][COLUMN]->setValue(0);
 					hasMerged = true;
 					hasMoved = true;
 				}
-				else
-				{
+				else {
 					hasMerged = false; // сбрасываем флаг, если не было сложени€
 				}
 			}
 		}
 	}
-
-	IfHasMoved();
-	CheckEndGame();
+	ifHasMoved();
+	checkEndGame();
 }
 
-void AManagerGame::PushDown()//—двигаем €чейки вниз
+void AManagerGame::pushDown()//—двигаем €чейки вниз
 {
-	SavePreviousBoard();
-
+	savePreviousBoard();
 	hasMoved = false;
-	const int SIZE = gameBoard->GetSIZEGRID();
-	for (int COLUMN = 0; COLUMN < SIZE; COLUMN++) 
-	{
+	const int SIZE = gameBoard->getSIZEGRID();
+
+	for (int COLUMN = 0; COLUMN < SIZE; COLUMN++)  {
 		bool hasMerged = false;
-		for (int ROW = SIZE - 2; ROW >= 0; ROW--) 
-		{
-			if (gameBoard->GameBoardTile[ROW][COLUMN]->GetValue() != 0)
-			{
+		for (int ROW = SIZE - 2; ROW >= 0; ROW--) {
+			if (gameBoard->gameBoardTile[ROW][COLUMN]->getValue() != 0) {
 				int newROW = ROW;
-				while (newROW < SIZE - 1 && gameBoard->GameBoardTile[newROW + 1][COLUMN]->GetValue() == 0)
-				{
-					gameBoard->GameBoardTile[newROW + 1][COLUMN]->SetValue(gameBoard->GameBoardTile[newROW][COLUMN]->GetValue());
-					gameBoard->GameBoardTile[newROW][COLUMN]->SetValue(0);
+				while (newROW < SIZE - 1 && gameBoard->gameBoardTile[newROW + 1][COLUMN]->getValue() == 0) {
+					gameBoard->gameBoardTile[newROW + 1][COLUMN]->setValue(gameBoard->gameBoardTile[newROW][COLUMN]->getValue());
+					gameBoard->gameBoardTile[newROW][COLUMN]->setValue(0);
 					newROW++;
 					hasMoved = true;
 				}
-				if (newROW < SIZE - 1 && gameBoard->GameBoardTile[newROW + 1][COLUMN]->GetValue() == gameBoard->GameBoardTile[newROW][COLUMN]->GetValue() && !hasMerged && gameBoard->GameBoardTile[newROW][COLUMN]->GetValue() != 0) {
-					gameBoard->GameBoardTile[newROW + 1][COLUMN]->SetValue(gameBoard->GameBoardTile[newROW + 1][COLUMN]->GetValue() * 2);
+				if (newROW < SIZE - 1 && gameBoard->gameBoardTile[newROW + 1][COLUMN]->getValue() == gameBoard->gameBoardTile[newROW][COLUMN]->getValue() 
+					&& !hasMerged && gameBoard->gameBoardTile[newROW][COLUMN]->getValue() != 0) {
+					gameBoard->gameBoardTile[newROW + 1][COLUMN]->setValue(gameBoard->gameBoardTile[newROW + 1][COLUMN]->getValue() * 2);
 
-					currentScore += gameBoard->GameBoardTile[newROW + 1][COLUMN]->GetValue();
+					currentScore += gameBoard->gameBoardTile[newROW + 1][COLUMN]->getValue();
 
-					gameBoard->GameBoardTile[newROW][COLUMN]->SetValue(0);
+					gameBoard->gameBoardTile[newROW][COLUMN]->setValue(0);
 					hasMerged = true;
 					hasMoved = true;
 				}
-				else
-				{
+				else {
 					hasMerged = false; // сбрасываем флаг, если не было сложени€
 				}
 			}
 		}
 	}
-
-	IfHasMoved();
-	CheckEndGame();
+	ifHasMoved();
+	checkEndGame();
 }
 
-void AManagerGame::PushLeft()//—двигаем €чейки влево
+void AManagerGame::pushLeft()//—двигаем €чейки влево
 {
-	SavePreviousBoard();
-
+	savePreviousBoard();
 	hasMoved = false;
-	const int SIZE = gameBoard->GetSIZEGRID();
+	const int SIZE = gameBoard->getSIZEGRID();
 
-	for (int ROW = 0; ROW < SIZE; ROW++)
-	{
+	for (int ROW = 0; ROW < SIZE; ROW++) {
 		bool hasMerged = false; // добавл€ем флаг дл€ запоминани€ выполненного сложени€
-		for (int COLUMN = 1; COLUMN < SIZE; COLUMN++)
-		{
-			if (gameBoard->GameBoardTile[ROW][COLUMN]->GetValue() != 0)
-			{
+		for (int COLUMN = 1; COLUMN < SIZE; COLUMN++) {
+			if (gameBoard->gameBoardTile[ROW][COLUMN]->getValue() != 0) {
 				int newCOLUMN = COLUMN;
-				while (newCOLUMN > 0 && gameBoard->GameBoardTile[ROW][newCOLUMN - 1]->GetValue() == 0) {
-					gameBoard->GameBoardTile[ROW][newCOLUMN - 1]->SetValue(gameBoard->GameBoardTile[ROW][newCOLUMN]->GetValue());
-					gameBoard->GameBoardTile[ROW][newCOLUMN]->SetValue(0);
+				while (newCOLUMN > 0 && gameBoard->gameBoardTile[ROW][newCOLUMN - 1]->getValue() == 0) {
+					gameBoard->gameBoardTile[ROW][newCOLUMN - 1]->setValue(gameBoard->gameBoardTile[ROW][newCOLUMN]->getValue());
+					gameBoard->gameBoardTile[ROW][newCOLUMN]->setValue(0);
 					newCOLUMN--;
 					hasMoved = true;
 				}
-				if (newCOLUMN > 0 && gameBoard->GameBoardTile[ROW][newCOLUMN - 1]->GetValue() == gameBoard->GameBoardTile[ROW][newCOLUMN]->GetValue() && !hasMerged  && gameBoard->GameBoardTile[ROW][newCOLUMN]->GetValue() != 0) {
-					gameBoard->GameBoardTile[ROW][newCOLUMN - 1]->SetValue(gameBoard->GameBoardTile[ROW][newCOLUMN - 1]->GetValue() * 2);
+				if (newCOLUMN > 0 && gameBoard->gameBoardTile[ROW][newCOLUMN - 1]->getValue() == gameBoard->gameBoardTile[ROW][newCOLUMN]->getValue()
+					&& !hasMerged  && gameBoard->gameBoardTile[ROW][newCOLUMN]->getValue() != 0) {
+					gameBoard->gameBoardTile[ROW][newCOLUMN - 1]->setValue(gameBoard->gameBoardTile[ROW][newCOLUMN - 1]->getValue() * 2);
 
-					currentScore += gameBoard->GameBoardTile[ROW][newCOLUMN - 1]->GetValue();
+					currentScore += gameBoard->gameBoardTile[ROW][newCOLUMN - 1]->getValue();
 
-					gameBoard->GameBoardTile[ROW][newCOLUMN]->SetValue(0);
+					gameBoard->gameBoardTile[ROW][newCOLUMN]->setValue(0);
 					hasMerged = true; // помечаем, что сложение было выполнено
 					hasMoved = true;
 				}
-				else
-				{
+				else {
 					hasMerged = false; // сбрасываем флаг, если не было сложени€
 				}
 			}
 		}
-		
 	}
-
-	IfHasMoved();
-	CheckEndGame();
+	ifHasMoved();
+	checkEndGame();
 }
 
-void AManagerGame::PushRight()// —двигаем €чейки вправо
+void AManagerGame::pushRight()// —двигаем €чейки вправо
 {
-	SavePreviousBoard();
-
+	savePreviousBoard();
 	hasMoved = false;
-	const int SIZE = gameBoard->GetSIZEGRID();
+	const int SIZE = gameBoard->getSIZEGRID();
 
-	for (int ROW = 0; ROW < SIZE; ROW++)
-	{
+	for (int ROW = 0; ROW < SIZE; ROW++) {
 		bool hasMerged = false;
 
-		for (int COLUMN = SIZE - 2; COLUMN >= 0; COLUMN--)
-		{
-			if (gameBoard->GameBoardTile[ROW][COLUMN]->GetValue() != 0)
-			{
+		for (int COLUMN = SIZE - 2; COLUMN >= 0; COLUMN--) {
+			if (gameBoard->gameBoardTile[ROW][COLUMN]->getValue() != 0) {
 				int newCOLUMN = COLUMN;
-				while (newCOLUMN < SIZE - 1 && gameBoard->GameBoardTile[ROW][newCOLUMN + 1]->GetValue() == 0)
-				{
-					gameBoard->GameBoardTile[ROW][newCOLUMN + 1]->SetValue(gameBoard->GameBoardTile[ROW][newCOLUMN]->GetValue());
-					gameBoard->GameBoardTile[ROW][newCOLUMN]->SetValue(0);
+				while (newCOLUMN < SIZE - 1 && gameBoard->gameBoardTile[ROW][newCOLUMN + 1]->getValue() == 0) {
+					gameBoard->gameBoardTile[ROW][newCOLUMN + 1]->setValue(gameBoard->gameBoardTile[ROW][newCOLUMN]->getValue());
+					gameBoard->gameBoardTile[ROW][newCOLUMN]->setValue(0);
 					newCOLUMN++;
 					hasMoved = true;
 				}
 
-				if (newCOLUMN < SIZE - 1 && gameBoard->GameBoardTile[ROW][newCOLUMN + 1]->GetValue() == gameBoard->GameBoardTile[ROW][newCOLUMN]->GetValue() && !hasMerged && gameBoard->GameBoardTile[ROW][newCOLUMN]->GetValue() != 0)
-				{
-					gameBoard->GameBoardTile[ROW][newCOLUMN + 1]->SetValue(gameBoard->GameBoardTile[ROW][newCOLUMN + 1]->GetValue() * 2);
+				if (newCOLUMN < SIZE - 1 && gameBoard->gameBoardTile[ROW][newCOLUMN + 1]->getValue() == gameBoard->gameBoardTile[ROW][newCOLUMN]->getValue()
+					&& !hasMerged && gameBoard->gameBoardTile[ROW][newCOLUMN]->getValue() != 0) {
+					gameBoard->gameBoardTile[ROW][newCOLUMN + 1]->setValue(gameBoard->gameBoardTile[ROW][newCOLUMN + 1]->getValue() * 2);
 
-					currentScore += gameBoard->GameBoardTile[ROW][newCOLUMN + 1]->GetValue();
+					currentScore += gameBoard->gameBoardTile[ROW][newCOLUMN + 1]->getValue();
 
-					gameBoard->GameBoardTile[ROW][newCOLUMN]->SetValue(0);
+					gameBoard->gameBoardTile[ROW][newCOLUMN]->setValue(0);
 					hasMerged = true;
 					hasMoved = true;
 				}
-				else
-				{
+				else {
 					hasMerged = false; // сбрасываем флаг, если не было сложени€
 				}
 			}
 		}
 	}
 
-	IfHasMoved();
-	CheckEndGame();
+	ifHasMoved();
+	checkEndGame();
 }
 
-void AManagerGame::CheckEndGame()// проверка на конец игры
+void AManagerGame::checkEndGame()// проверка на конец игры
 {
-	if (gameBoard->GetCountEmptyTile() == 0) // ”знаем остались ли пусте €чейки
-	{
+	// ”знаем остались ли пусте €чейки
+	if (gameBoard->getCountEmptyTile() == 0) {
+
+		const int SIZE = gameBoard->getSIZEGRID();
 		// проверка: можно ли произвести сли€ние с соседними блоками
-		for (int ROW = 0; ROW < gameBoard->GetSIZEGRID(); ROW++)
-		{
-			for (int COLUMNUMN = 0; COLUMNUMN < gameBoard->GetSIZEGRID(); COLUMNUMN++)
-			{
-				ATile* currentTile = gameBoard->GameBoardTile[ROW][COLUMNUMN];
-				if (CanCombineWithTile(currentTile, ROW - 1, COLUMNUMN) ||
-					CanCombineWithTile(currentTile, ROW + 1, COLUMNUMN) ||
-					CanCombineWithTile(currentTile, ROW, COLUMNUMN - 1) ||
-					CanCombineWithTile(currentTile, ROW, COLUMNUMN + 1))
+		for (int ROW = 0; ROW < SIZE; ROW++) {
+			for (int COLUMNUMN = 0; COLUMNUMN < SIZE; COLUMNUMN++) {
+				ATile* currentTile = gameBoard->gameBoardTile[ROW][COLUMNUMN];
+				if (canCombineWithTile(currentTile, ROW - 1, COLUMNUMN) ||
+					canCombineWithTile(currentTile, ROW + 1, COLUMNUMN) ||
+					canCombineWithTile(currentTile, ROW, COLUMNUMN - 1) ||
+					canCombineWithTile(currentTile, ROW, COLUMNUMN + 1))
 				{
 					return;
 				}
 			}
 		}
-		EndGame();
+		endGame();
 	}
 }
 
-bool AManagerGame::CanCombineWithTile(ATile* const currentTile,int const &ROW,int const &COLUMNUMN)
+bool AManagerGame::canCombineWithTile(ATile* const currentTile,int const &ROW,int const &COLUMNUMN)
 {
 	// функци€ определ€ет можно ли сли€ть данный блок с соседним по определенному индексу
-	if (ROW < 0 || ROW >= gameBoard->GetSIZEGRID() || COLUMNUMN < 0 || COLUMNUMN >= gameBoard->GetSIZEGRID())
-	{
+	if (ROW < 0 || ROW >= gameBoard->getSIZEGRID() || COLUMNUMN < 0 || COLUMNUMN >= gameBoard->getSIZEGRID()) {
 		return false;
 	}
 
-	ATile* adjacentTile = gameBoard->GameBoardTile[ROW][COLUMNUMN];
-
-	if (currentTile->GetValue() == adjacentTile->GetValue())
-	{
+	ATile* adjacentTile = gameBoard->gameBoardTile[ROW][COLUMNUMN];
+	if (currentTile->getValue() == adjacentTile->getValue()) {
 		return true;
 	}
 
 	return false;
 }
 
-void AManagerGame::SavePreviousBoard()// —охранение состо€ни€ предыдущего хода
+void AManagerGame::savePreviousBoard()// —охранение состо€ни€ предыдущего хода
 {
 	previousScore = currentScore;
-	int SIZE = gameBoard->GetSIZEGRID();
+	int SIZE = gameBoard->getSIZEGRID();
 
-	for (int ROW = 0; ROW < SIZE; ROW++) 
-	{
-		for (int COLUMN = 0; COLUMN < SIZE; COLUMN++) 
-		{
-			previousBoard[ROW][COLUMN] = gameBoard->GameBoardTile[ROW][COLUMN]->GetValue();
+	for (int ROW = 0; ROW < SIZE; ROW++) {
+		for (int COLUMN = 0; COLUMN < SIZE; COLUMN++) {
+			previousBoard[ROW][COLUMN] = gameBoard->gameBoardTile[ROW][COLUMN]->getValue();
 		}
 	}
 }
 
-void AManagerGame::IfHasMoved()
+void AManagerGame::ifHasMoved()
 {
-	UpdateScore(currentScore);
-	if (hasMoved)
-	{
-		gameBoard->GenerateRandomValue();
+	updateScore(currentScore);
+	if (hasMoved) {
+		gameBoard->generateRandomValue();
 	}
 }
 
-void AManagerGame::SetPreviousBoard() // «амена текущих значени€ €чеек на значени€, которые были на предыдущем ходе
+void AManagerGame::setPreviousBoard() // «амена текущих значени€ €чеек на значени€, которые были на предыдущем ходе
 {	
-	if (undoCount > 0 && hasMoved)
-	{
+	if (undoCount > 0 && hasMoved) {
 		currentScore = previousScore;
+		int SIZE = gameBoard->getSIZEGRID();
 
-		int SIZE = gameBoard->GetSIZEGRID();
-
-		for (int ROW = 0; ROW < SIZE; ROW++)
-		{
-			for (int COLUMN = 0; COLUMN < SIZE; COLUMN++)
-			{
-				gameBoard->GameBoardTile[ROW][COLUMN]->SetValue(previousBoard[ROW][COLUMN]);
+		for (int ROW = 0; ROW < SIZE; ROW++) {
+			for (int COLUMN = 0; COLUMN < SIZE; COLUMN++) {
+				gameBoard->gameBoardTile[ROW][COLUMN]->setValue(previousBoard[ROW][COLUMN]);
 			}
 		}
-		UpdateScore(currentScore);
-		UpdateUndoCount(--undoCount);
+		updateScore(currentScore);
+		updateUndoCount(--undoCount);
 		hasMoved = false;
 	}
 }
 
-void AManagerGame::UpdateUndoCount(int UndoCount)
+void AManagerGame::updateUndoCount(int countUndo)
 {
-	StartMenuUndoCountText->SetText(FText::AsNumber(UndoCount));
+	startMenuUndoCountText->SetText(FText::AsNumber(countUndo));
 }
 
-void AManagerGame::UpdateScore(int Score)
+void AManagerGame::updateScore(int score)
 {
-	StartMenuScoreBlock->SetText(FText::AsNumber(Score));
+	startMenuScoreBlock->SetText(FText::AsNumber(score));
 }

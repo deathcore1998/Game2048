@@ -15,47 +15,47 @@ AInputManager::AInputManager()
 void AInputManager::BeginPlay()
 {
 	Super::BeginPlay();
-	ManagerGame = Cast<AManagerGame>(UGameplayStatics::GetActorOfClass(GetWorld(), AManagerGame::StaticClass()));
+	managerGame = Cast<AManagerGame>(UGameplayStatics::GetActorOfClass(GetWorld(), AManagerGame::StaticClass()));
 }
 
 void AInputManager::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	InputComponent->BindAction("PushUp", IE_Pressed, this, &AInputManager::PushUp);
-	InputComponent->BindAction("PushDown", IE_Pressed, this, &AInputManager::PushDown);
-	InputComponent->BindAction("PushLeft", IE_Pressed, this, &AInputManager::PushLeft);
-	InputComponent->BindAction("PushRight", IE_Pressed, this, &AInputManager::PushRight);
-	InputComponent->BindAction("NewGame",IE_Pressed,this, &AInputManager::StartNewGame);
-	InputComponent->BindAction("CancelingMove", IE_Pressed, this, &AInputManager::CancelingMove);
+	InputComponent->BindAction("PushUp", IE_Pressed, this, &AInputManager::pushUp);
+	InputComponent->BindAction("PushDown", IE_Pressed, this, &AInputManager::pushDown);
+	InputComponent->BindAction("PushLeft", IE_Pressed, this, &AInputManager::pushLeft);
+	InputComponent->BindAction("PushRight", IE_Pressed, this, &AInputManager::pushRight);
+	InputComponent->BindAction("NewGame",IE_Pressed,this, &AInputManager::startNewGame);
+	InputComponent->BindAction("CancelingMove", IE_Pressed, this, &AInputManager::cancelingMove);
 }
 
-void AInputManager::PushUp()
+void AInputManager::pushUp()
 {
-	ManagerGame->PushUp();
+	managerGame->pushUp();
 }
 
-void AInputManager::PushDown()
+void AInputManager::pushDown()
 {
-	ManagerGame->PushDown();
+	managerGame->pushDown();
 }
 
-void AInputManager::PushLeft()
+void AInputManager::pushLeft()
 {
-	ManagerGame->PushLeft();
+	managerGame->pushLeft();
 }
 
-void AInputManager::PushRight()
+void AInputManager::pushRight()
 {
-	ManagerGame->PushRight();
+	managerGame->pushRight();
 }
 
-void AInputManager::StartNewGame()
+void AInputManager::startNewGame()
 {
-	ManagerGame->StartGame();
+	managerGame->startGame();
 }
 
-void AInputManager::CancelingMove()
+void AInputManager::cancelingMove()
 {
-	ManagerGame->SetPreviousBoard();
+	managerGame->setPreviousBoard();
 }

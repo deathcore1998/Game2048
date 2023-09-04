@@ -13,5 +13,5 @@ class GAME2048_API URandomizer : public UObject
 
 public:
 
-	int GenerateRandomValueForTile(TArray<TArray<ATile*>>& GameBoardTileRef, const int& SIZEGRID);
+	int GenerateRandomValueForTile(TArray<TArray<ATile*>>& gameBoardTileRef, const int& SIZEGRID);
 };

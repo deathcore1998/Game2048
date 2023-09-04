@@ -11,28 +11,21 @@ UCLASS()
 class GAME2048_API AInputManager : public APlayerController
 {
 	GENERATED_BODY()
-
-	virtual void BeginPlay() override;
-
-	virtual void SetupInputComponent() override;
-
-	UFUNCTION(BlueprintCallable)
-		void PushUp();
-
-	void PushDown();
-
-	void PushLeft();
-
-	void PushRight();
-
-	void StartNewGame();
-
-	void CancelingMove();
-
 public:
 	AInputManager();
 
+protected:
+	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 
 private:
-	AManagerGame* ManagerGame;
+	void pushUp();
+	void pushDown();
+	void pushLeft();
+	void pushRight();
+	void startNewGame();
+	void cancelingMove();
+
+private:
+	AManagerGame* managerGame;
 };
